@@ -1,2 +1,2 @@
-# nodejs_emailer
-Envío de correos desde una aplicación Node.js
+# Envío de correos
+Envío de correos desde una aplicación web escrita en Node.js
