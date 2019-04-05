@@ -1,0 +1,23 @@
+{
+  "name": "nlhpc-mailer",
+  "version": "1.0.0",
+  "description": "Little program to send a mail to all users in LDAP",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mail",
+    "ldap"
+  ],
+  "author": "Paulo Paillacar",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "ldapjs": "^1.0.1",
+    "nodemailer": "^4.0.1",
+    "pug": "^2.0.0-rc.1"
+  }
+}

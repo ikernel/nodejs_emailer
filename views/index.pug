@@ -1,0 +1,135 @@
+doctype html
+html
+    head
+        title Enviar correo a todo LDAP
+        link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css")
+        link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous")
+    body
+        .container
+            .row
+                .col-md-12
+                    h1 Correo a todos en LDAP!
+            form#cuerpo_correo
+                .row
+                    .col-md-6
+                        .form-group
+                            input#asunto.form-control(type="text" placeholder="Asunto del correo" style={width: "100%"} required)
+                    .col-md-offset-4.col-md-2
+                        button#enviar.pull-right Enviar correo
+                .row
+                    .col-md-12
+                        hr
+                        .form-group
+                            textarea#cuerpo.form-control(required)
+                                br
+                                br
+                                hr
+                                p
+                                    img(src="http://www.nlhpc.cl/static/logo_nlhpc.gif" alt="Logo NLHPC")
+                                    br
+                                    | Equipo de Soporte del NLHPC | <a href="mailto:soporte@nlhpc.cl">soporte@nlhpc.cl</a> <br />
+                                    | National Laboratory for High Performance Computing (NLHPC) | <a href="http://www.nlhpc.cl">www.nlhpc.cl</a> <br />
+                                    | Centro de Modelamiento Matemático (CMM) <br />
+                                    | Facultad de Ciencias Físicas y Matemáticas. Universidad de Chile <br />
+                                    | Beauchef 851, 7mo Piso <br />
+                                    | Teléfono oficina: +56-2-29784603 <br />
+
+        #modal_password.modal.fade(tabindex="-1" role="dialog" aria-labelledby="modalCredenciales")
+            .modal-dialog(role="document")
+                .modal-content
+                    .modal-header
+                        button.close(type="button" data-dismiss="modal" aria-label="Cerrar")
+                            span(aria-hidden="true") &times;
+                        h4#modalCredenciales.modal-title Ingrese sus credenciales
+                    .modal-body
+                        form#credenciales_usuario_correo
+                            .form-group
+                                label(for="usuario") Nombre de usuario
+                                input#usuario.form-control(type="text" placeholder="Usuario" required)
+                            .form-group
+                                label(for="password") Contraseña
+                                input#password.form-control(type="password" placeholder="Contraseña" required)
+                    .modal-footer
+                        span#mensaje_resultado_autenticacion.pull-left 
+                        button.btn.btn-danger(type="button" data-dismiss="modal") Cancelar
+                        button#autenticar.btn.btn-success(type="button") Autenticar
+
+        script(src="https://code.jquery.com/jquery-3.2.1.min.js")
+        script(src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.16.0/jquery.validate.min.js")
+        script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous")
+        script(src="https://cloud.tinymce.com/stable/tinymce.min.js?apiKey=9794opqjdtpms116sbsibmx5o8rfkk3vl978au4zl28n9c7r")
+        script.
+            $.extend($.validator.messages, {
+                required: "Este campo es requerido",
+                remote: "Llene este campo",
+                email: "Escriba una dirección de correo válida",
+                url: "Escriba una URL válida",
+                date: "Escriba una fecha válida",
+                dateISO: "Escriba una fecha (ISO) válida",
+                number: "Escriba un número válido",
+                digits: "Escriba sólo dígitos",
+                creditcard: "Escriba un número de tarjeta válido",
+                equalTo: "Escriba el mismo valor de nuevo",
+                extension: "Escriba un valor con una extensión aceptada",
+                maxlength: $.validator.format("No escriba más de {0} caracteres"),
+                minlength: $.validator.format("No escriba menos de {0} caracteres"),
+                rangelength: $.validator.format("Escriba un valor entre {0} y {1} caracteres"),
+                range: $.validator.format("Escriba un valor entre {0} y {1}"),
+                max: $.validator.format("Escriba un valor menor o igual a {0}"),
+                min: $.validator.format("Escriba un valor mayor o igual a {0.")
+            });
+
+            $(() => {
+                tinymce.init({
+                    selector: 'textarea#cuerpo',
+                    plugins: 'autoresize',
+                    autoresize_min_height: 400
+                })
+
+                $('#cuerpo_correo').validate({
+                    highlight: (elemento) => {
+                        $('#cuerpo_correo').find('.form-group').addClass('has-error')
+                    },
+                    unhighlight: (elemento) => {
+                        $('#cuerpo_correo').find('.form-group').removeClass('has-error')
+                    }
+                })
+
+                $('#credenciales_usuario_correo').validate({
+                    highlight: (elemento) => {
+                        $('#credenciales_usuario_correo').find('.form-group').addClass('has-error')
+                    },
+                    unhighlight: (elemento) => {
+                        $('#credenciales_usuario_correo').find('.form-group').removeClass('has-error')
+                    }
+                })
+
+                $('#enviar').click((evento) => {
+                    if ($('#cuerpo_correo').valid()) {
+                        evento.preventDefault()
+                        $('#modal_password').modal('show')
+                    }
+                })
+
+                $('#autenticar').click((evento) => {
+                    if ($('#credenciales_usuario_correo').valid()) {
+                        evento.preventDefault()
+
+                        let asunto = $('#asunto').val()
+                        let html_interno = tinymce.activeEditor.getContent()
+                        let usuario = $('#usuario').val()
+                        let pass = $('#password').val()
+
+                        var resultado = $.post("/", {asunto: asunto, html: html_interno, usuario: usuario, password: pass})
+                        resultado.done((response) => {
+                            $('#mensaje_resultado_autenticacion').text(response.status_ok ? "Conexión establecida" : "Error de autenticación")
+                            $('#mensaje_resultado_autenticacion').addClass(response.status_ok ? "text-success" : "text-danger")
+
+                            setTimeout(() => $('#mensaje_resultado_autenticacion').empty(), 5000)
+                            if (response.status_ok) {
+                                $('#modal_password').modal('hide')
+                            }
+                        })
+                    }
+                })
+            });
